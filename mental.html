@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Arifmetika - Professional Quiz</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mode-selection {
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            margin: 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+        }
+
+        .quiz-section {
+            display: none;
+        }
+
+        .quiz-section.active {
+            display: block;
+            animation: slideIn 0.5s ease-in;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Flip Card Styles */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 250px;
+            perspective: 1000px;
+            margin: 30px 0;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .flip-card-front {
+            background: linear-gradient(135deg, #f8f9ff, #e6f3ff);
+            border: 3px solid #007bff;
+            flex-direction: column;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border: 3px solid #28a745;
+            transform: rotateY(180deg);
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        #questionDisplay {
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .number, .operator {
+            font-size: 4em;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation-name: fadeInOut;
+            animation-timing-function: ease-in-out;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.8); }
+            20% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.2); }
+        }
+
+        .plus { color: #28a745; }
+        .minus { color: #dc3545; }
+        
+        .answer-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #28a745;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .answer-options {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .answer-btn {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.5em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        .answer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .answer-btn.correct { background: linear-gradient(45deg, #28a745, #20c997); }
+        .answer-btn.incorrect { background: linear-gradient(45deg, #dc3545, #c82333); }
+
+        .btn {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            display: none;
+        }
+        .btn.show {
+            display: inline-block;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .flip-btn {
+            background: linear-gradient(45deg, #fd7e14, #e8590c);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        .flip-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin: 25px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(40,167,69,0.4);
+        }
+
+        .settings-block {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+        }
+
+        .settings-btn {
+            background: linear-gradient(45deg, #6f42c1, #5a2d91);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(111,66,193,0.4);
+        }
+
+        .settings-btn.active {
+            background: linear-gradient(45deg, #fd7e14, #e8590c);
+        }
+        
+        .stats {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 25px 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .stats-item {
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .stats-item span {
+            color: #ffeb3b;
+            font-size: 1.5em;
+            margin-left: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .developer-info {
+            margin-top: 50px;
+            font-size: 1em;
+            color: #555;
+            text-align: center;
+        }
+        
+        .developer-info a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        
+        .developer-info a:hover {
+            color: #764ba2;
+        }
+
+        /* Modal oyna stillari */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: modalPopUp 0.5s ease-out;
+        }
+
+        @keyframes modalPopUp {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-content h2 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .modal-content p {
+            font-size: 1.2em;
+            margin: 15px 0;
+            color: #555;
+        }
+
+        .modal-content .modal-stat-box {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .modal-content button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .modal-content button:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2.2em;
+            }
+            .number, .operator, .equals, .answer-display {
+                font-size: 2.5em;
+                margin: 5px 10px;
+            }
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .stats-item {
+                font-size: 1em;
+            }
+            .modal-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Mental Arifmetika Pro</h1>
+
+        <div class="mode-selection" id="modeSelection">
+            <h3 style="margin-bottom: 20px; font-size: 1.3em;">Rejimni tanlang:</h3>
+            <button class="mode-btn" onclick="startQuiz('single')">Bir xonalik sonlar</button>
+            <button class="mode-btn" onclick="startQuiz('double')">Ikki xonalik sonlar</button>
+
+            <div class="settings-block">
+                <h4 style="margin: 15px 0;">Qiyinchilik darajasi:</h4>
+                <button class="settings-btn difficulty-btn active" onclick="setDifficulty('easy')" id="easyBtn">Oson (3-5 raqam)</button>
+                <button class="settings-btn difficulty-btn" onclick="setDifficulty('medium')" id="mediumBtn">O'rta (5-8 raqam)</button>
+                <button class="settings-btn difficulty-btn" onclick="setDifficulty('hard')" id="hardBtn">Qiyin (8-12 raqam)</button>
+            </div>
+            <div class="settings-block">
+                <h4 style="margin: 15px 0;">Tezlik:</h4>
+                <button class="settings-btn speed-btn" onclick="setSpeed('slow')" id="slowBtn">Sekin</button>
+                <button class="settings-btn speed-btn active" onclick="setSpeed('medium')" id="mediumBtn">O'rta</button>
+                <button class="settings-btn speed-btn" onclick="setSpeed('fast')" id="fastBtn">Tez</button>
+            </div>
+        </div>
+
+        <div class="quiz-section" id="quizSection">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="flip-card" id="flipCard">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <div id="questionDisplay"></div>
+                        <button class="flip-btn" id="flipBtn" onclick="flipCardToAnswers()">Javob berish</button>
+                    </div>
+                    <div class="flip-card-back">
+                         <div id="answerOptions"></div>
+                         <div class="correct-answer-text">To'g'ri javob: <span id="correctAnswerText"></span></div>
+                         <button class="btn show" id="nextQuestionBtn" onclick="nextQuestion()">Keyingi savol</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="resetQuiz()">Qaytadan boshlash</button>
+            
+            <div class="stats" id="stats">
+                <div class="stats-item">Savol: <span id="questionCount">0</span>/<span id="totalQuestionsCount">10</span></div>
+                <div class="stats-item">To'g'ri: <span id="correctCount">0</span></div>
+                <div class="stats-item">Ball: <span id="scoreDisplay">0</span></div>
+            </div>
+            
+            <div class="developer-info">
+                <p>Ushbu dastur <a href="https://t.me/Otavaliyev_M" target="_blank">SHodlik (Otavaliyev_M)</a> tomonidan yaratilgan.</p>
+                <p>Manba kodi: <a href="https://github.com/shodlikai" target="_blank">GitHub</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultsModal">
+        <div class="modal-content" id="modalContent">
+            </div>
+    </div>
+
+    <script>
+        let currentMode = '';
+        let difficulty = 'easy';
+        let displaySpeed = 1000;
+        let currentQuestion = 0;
+        let correctAnswers = 0;
+        let incorrectAnswers = 0;
+        let score = 0;
+        let totalQuestions = 10;
+        let questions = [];
+        let isQuestionDisplaying = false;
+
+        document.getElementById('totalQuestionsCount').textContent = totalQuestions;
+
+        function setDifficulty(level) {
+            difficulty = level;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(level + 'Btn').classList.add('active');
+        }
+        
+        function setSpeed(speed) {
+            document.querySelectorAll('.speed-btn').forEach(btn => btn.classList.remove('active'));
+            if (speed === 'slow') {
+                displaySpeed = 1500;
+                document.getElementById('slowBtn').classList.add('active');
+            } else if (speed === 'medium') {
+                displaySpeed = 1000;
+                document.getElementById('mediumBtn').classList.add('active');
+            } else {
+                displaySpeed = 500;
+                document.getElementById('fastBtn').classList.add('active');
+            }
+        }
+
+        function startQuiz(mode) {
+            currentMode = mode;
+            currentQuestion = 0;
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            score = 0;
+            questions = [];
+
+            document.getElementById('modeSelection').style.display = 'none';
+            document.getElementById('quizSection').classList.add('active');
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('resultsModal').style.display = 'none';
+
+            generateQuestions();
+            showQuestion();
+            updateStats();
+        }
+
+        function generateQuestions() {
+            questions = [];
+            for (let i = 0; i < totalQuestions; i++) {
+                questions.push(generateComplexQuestion());
+            }
+        }
+
+        function generateComplexQuestion() {
+            let numbers = [];
+            let operators = [];
+            let numCount;
+            let result;
+            let minRange, maxRange;
+
+            switch(difficulty) {
+                case 'easy':
+                    numCount = Math.floor(Math.random() * 3) + 3;
+                    minRange = (currentMode === 'single') ? 1 : 10;
+                    maxRange = (currentMode === 'single') ? 9 : 99;
+                    break;
+                case 'medium':
+                    numCount = Math.floor(Math.random() * 4) + 5;
+                    minRange = (currentMode === 'single') ? 1 : 10;
+                    maxRange = (currentMode === 'single') ? 9 : 99;
+                    break;
+                case 'hard':
+                    numCount = Math.floor(Math.random() * 5) + 8;
+                    minRange = (currentMode === 'single') ? 1 : 10;
+                    maxRange = (currentMode === 'single') ? 9 : 99;
+                    break;
+            }
+
+            let firstNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+            numbers.push(firstNum);
+            result = firstNum;
+
+            for (let i = 0; i < numCount - 1; i++) {
+                let num;
+                let op;
+                let isAdd = Math.random() < 0.6;
+
+                if (isAdd) {
+                    op = '+';
+                    let maxAdd = maxRange - result;
+                    if (maxAdd > 0) {
+                        num = Math.floor(Math.random() * maxAdd) + minRange;
+                    } else {
+                        op = '-';
+                        let maxSub = result - minRange;
+                        num = Math.floor(Math.random() * maxSub) + minRange;
+                    }
+                } else {
+                    op = '-';
+                    let maxSub = result - minRange;
+                    if (maxSub > 0) {
+                        num = Math.floor(Math.random() * maxSub) + minRange;
+                    } else {
+                        op = '+';
+                        let maxAdd = maxRange - result;
+                        num = Math.floor(Math.random() * maxAdd) + minRange;
+                    }
+                }
+                
+                numbers.push(num);
+                operators.push(op);
+
+                if (op === '+') {
+                    result += num;
+                } else {
+                    result -= num;
+                }
+            }
+
+            if (result > maxRange || result < minRange) {
+                return generateComplexQuestion();
+            }
+
+            let options = generateAnswerOptions(result, minRange, maxRange);
+
+            return { numbers, operators, answer: result, options: options };
+        }
+        
+        function generateAnswerOptions(correctAnswer, min, max) {
+            let options = [correctAnswer];
+            let usedNumbers = new Set([correctAnswer]);
+
+            while (options.length < 3) {
+                let incorrectAnswer;
+                let offset = Math.floor(Math.random() * 10) + 1;
+                if (Math.random() > 0.5) {
+                    incorrectAnswer = correctAnswer + offset;
+                } else {
+                    incorrectAnswer = correctAnswer - offset;
+                }
+
+                if (!usedNumbers.has(incorrectAnswer) && incorrectAnswer >= min && incorrectAnswer <= max) {
+                    options.push(incorrectAnswer);
+                    usedNumbers.add(incorrectAnswer);
+                }
+            }
+
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+            return options;
+        }
+        
+        function showQuestion() {
+            if (currentQuestion < totalQuestions) {
+                isQuestionDisplaying = true;
+                const q = questions[currentQuestion];
+                const questionDisplay = document.getElementById('questionDisplay');
+                const answerOptionsDiv = document.getElementById('answerOptions');
+                const flipCardElement = document.getElementById('flipCard');
+
+                answerOptionsDiv.innerHTML = '';
+                flipCardElement.classList.remove('flipped');
+                document.getElementById('nextQuestionBtn').style.display = 'none';
+                document.getElementById('flipBtn').style.display = 'none';
+
+                let elements = [];
+                for (let i = 0; i < q.numbers.length; i++) {
+                    elements.push({ type: 'number', value: q.numbers[i] });
+                    if (i < q.operators.length) {
+                        elements.push({ type: 'operator', value: q.operators[i] });
+                    }
+                }
+
+                let index = 0;
+                function displayNextElement() {
+                    if (index < elements.length) {
+                        questionDisplay.innerHTML = '';
+                        const element = elements[index];
+                        let elementHTML;
+                        if (element.type === 'number') {
+                            elementHTML = `<span class="number" style="animation-duration: ${displaySpeed / 1000}s;">${element.value}</span>`;
+                        } else {
+                            const operatorClass = element.value === '+' ? 'plus' : 'minus';
+                            elementHTML = `<span class="operator ${operatorClass}" style="animation-duration: ${displaySpeed / 1000}s;">${element.value}</span>`;
+                        }
+                        questionDisplay.innerHTML = elementHTML;
+
+                        index++;
+                        setTimeout(displayNextElement, displaySpeed);
+                    } else {
+                        isQuestionDisplaying = false;
+                        questionDisplay.innerHTML = '<span class="number" style="animation: none; opacity: 1;">=?</span>';
+                        document.getElementById('flipBtn').style.display = 'inline-block';
+                    }
+                }
+                displayNextElement();
+
+                const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+                updateStats();
+            } else {
+                showFinalResults();
+            }
+        }
+        
+        function flipCardToAnswers() {
+            if (isQuestionDisplaying) return;
+            const q = questions[currentQuestion];
+            const answerOptionsDiv = document.getElementById('answerOptions');
+            answerOptionsDiv.innerHTML = '';
+            
+            q.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = option;
+                btn.onclick = () => checkAnswer(option, q.answer);
+                answerOptionsDiv.appendChild(btn);
+            });
+            
+            document.getElementById('flipCard').classList.add('flipped');
+            document.getElementById('flipBtn').style.display = 'none';
+        }
+        
+        function checkAnswer(selectedAnswer, correctAnswer) {
+            isQuestionDisplaying = true; 
+
+            const answerBtns = document.getElementById('answerOptions').children;
+            for (let i = 0; i < answerBtns.length; i++) {
+                answerBtns[i].disabled = true;
+            }
+
+            if (parseInt(selectedAnswer) === correctAnswer) {
+                correctAnswers++;
+                score += 10;
+            } else {
+                incorrectAnswers++;
+                score -= 5;
+            }
+            
+            document.getElementById('correctAnswerText').textContent = correctAnswer;
+            
+            const selectedBtn = Array.from(answerBtns).find(btn => btn.textContent == selectedAnswer);
+            if (selectedBtn) {
+                if (parseInt(selectedAnswer) === correctAnswer) {
+                    selectedBtn.classList.add('correct');
+                } else {
+                    selectedBtn.classList.add('incorrect');
+                }
+            }
+            
+            updateStats();
+            document.getElementById('nextQuestionBtn').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            showQuestion();
+        }
+        
+        function updateStats() {
+            document.getElementById('questionCount').textContent = currentQuestion;
+            document.getElementById('correctCount').textContent = correctAnswers;
+            document.getElementById('scoreDisplay').textContent = score;
+        }
+
+        function showFinalResults() {
+            const finalScore = score;
+            const maxScore = totalQuestions * 10;
+            const percentage = (maxScore > 0) ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+
+            let message = '';
+            let emoji = '';
+
+            if (percentage >= 90) {
+                message = 'A\'lo natija! Mental arifmetika ustasi!';
+                emoji = '🏆';
+            } else if (percentage >= 70) {
+                message = 'Yaxshi natija! Davom eting!';
+                emoji = '🌟';
+            } else if (percentage >= 50) {
+                message = 'Mantiqiy o\'y-fikr zo\'r! Tezlikni oshirish kerak.';
+                emoji = '👍';
+            } else {
+                message = 'Ko\'proq mashq qiling, albatta uddalaysiz!';
+                emoji = '💪';
+            }
+            
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h2>${emoji} Quiz tugadi!</h2>
+                <p style="color: #28a745;">${message}</p>
+                <div class="modal-stat-box">
+                    <p><strong>Yakuniy ball: ${finalScore}</strong></p>
+                    <p>To'g'ri javoblar: ${correctAnswers}/${totalQuestions}</p>
+                    <p>Noto'g'ri javoblar: ${incorrectAnswers}/${totalQuestions}</p>
+                </div>
+                <button onclick="closeModal()">Yopish</button>
+            `;
+            
+            document.getElementById('resultsModal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('resultsModal').style.display = 'none';
+            resetQuiz();
+        }
+
+        function resetQuiz() {
+            document.getElementById('quizSection').classList.remove('active');
+            document.getElementById('modeSelection').style.display = 'block';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('stats').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
